@@ -1,6 +1,7 @@
 package com.itestra.software_analyse_challenge;
 
 import java.util.List;
+import java.util.Collections;
 
 public class Output {
 
@@ -10,9 +11,19 @@ public class Output {
 
     private final List<String> dependencies;
 
-    public Output(final int lineNumber, final List<String> dependencies) {
+    public Output(final int lineNumber) {
         this.lineNumber = lineNumber;
-        this.dependencies = dependencies;
+        this.dependencies = Collections.emptyList();
+    }
+
+    /**
+     * Full constructor for Task 2: line count + list of project dependencies.
+     */
+    public Output(final int lineNumber, List<String> dependencies) {
+        this.lineNumber   = lineNumber;
+        this.dependencies = dependencies != null
+                ? dependencies
+                : Collections.emptyList();
     }
 
     @SuppressWarnings("unused")

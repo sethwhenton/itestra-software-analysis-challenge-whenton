@@ -3,25 +3,127 @@ package com.itestra.software_analyse_challenge;
 import org.apache.commons.cli.*;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 public class SourceCodeAnalyser {
+    /**
+     * Count lines excluding:
+     * - blank lines
+     * - single-line // comments
+     * - block comments (/* … *​/)
+     * - one-line getters like: public Type getFoo() { return foo; }
+     */
+    private static int countCleanSourceLines(Path javaFile) throws IOException {
+        int count = 0;
+        boolean inBlock = false;
+        for (String raw : Files.readAllLines(javaFile)) {
+            String line = raw.trim();
+            // block comment start?
+            if (!inBlock && line.startsWith("/*")) {
+                inBlock = true;
+            }
+            // block comment end?
+            if (inBlock) {
+                if (line.endsWith("*/")) {
+                    inBlock = false;
+                }
+                continue;
+            }
+            // skip blank or // comments
+            if (line.isEmpty() || line.startsWith("//")) {
+                continue;
+            }
+            // skip one-line getter: public Type getX() { return x; }
+            if (line.matches("public\\s+\\w+\\s+get[A-Z]\\w*\\s*\\(\\s*\\)\\s*\\{\\s*return\\s+\\w+;\\s*\\}")) {
+                continue;
+            }
+            count++;
+        }
+        return count;
+    }
+
+    /**
+     * Count non-empty, non-// comment lines in a .java file.
+     */
+    private static int countSourceLines(Path javaFile) throws IOException {
+        int count = 0;
+        for (String line : Files.readAllLines(javaFile)) {
+            String trimmed = line.trim();
+            if (trimmed.isEmpty() || trimmed.startsWith("//")) {
+                continue;
+            }
+            count++;
+        }
+        return count;
+    }
 
     /**
      * Your implementation
+     *
      *
      * @param input {@link Input} object.
      * @return mapping from filename -> {@link Output} object.
      */
     public static Map<String, Output> analyse(Input input) {
-        // TODO insert your Code here.
+        Map<String, Output> result = new HashMap<>();
 
-        // For each file put one Output object to your result map.
-        // You can extend the Output object using the functions lineNumberBonus(int), if you did
-        // the bonus exercise.
+        // 1) Convert the input directory to a Path root
+        Path root = input.getInputDirectory().toPath();
 
-        return Collections.emptyMap();
+        try {
+            // 2) Discover project roots under the input directory (e.g. "cronutils", "fig", "spark")
+            List<String> projectRoots = Files.list(root)
+                    .filter(Files::isDirectory)
+                    .map(dir -> dir.getFileName().toString())
+                    .collect(Collectors.toList());
+
+            // 3) Walk .java files and for each, count lines and detect imports
+            Files.walk(root)
+                    .filter(Files::isRegularFile)
+                    .filter(p -> p.toString().endsWith(".java"))
+                    .forEach(p -> {
+                        try {
+                            // a) Count source lines
+                            int lines = countSourceLines(p);
+
+                            // b) Parse import statements and map each import to its project root
+                            List<String> deps = Files.readAllLines(p).stream()
+                                    .map(String::trim)
+                                    .filter(line -> line.startsWith("import "))
+                                    .map(line -> line.substring(7, line.length() - 1))  // drop "import" and trailing ";"
+                                    .map(pkg -> projectRoots.stream()
+                                            .filter(pkg::startsWith)
+                                            .findFirst()
+                                            .orElse(null))
+                                    .filter(Objects::nonNull)
+                                    .distinct()
+                                    .collect(Collectors.toList());
+
+                            // c) Compute the path relative to the input root and record output
+                            String relPath = root.relativize(p).toString();
+                            int clean = countCleanSourceLines(p);
+                            result.put(relPath,
+                                    new Output(lines, deps)
+                                            .lineNumberBonus(clean)
+                            );
+
+                        } catch (IOException e) {
+                            throw new UncheckedIOException("Failed reading " + p, e);
+                        }
+                    });
+        } catch (IOException e) {
+            throw new UncheckedIOException("Error walking directory " + root, e);
+        }
+
+        return result;
     }
 
 
