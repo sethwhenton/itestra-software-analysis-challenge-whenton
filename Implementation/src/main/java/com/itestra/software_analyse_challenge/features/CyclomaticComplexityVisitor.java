@@ -1,3 +1,5 @@
+// This file was written with the help of an LLM. See LLM/prompts.txt for details.
+
 package com.itestra.software_analyse_challenge.features;
 
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
