@@ -1,0 +1,155 @@
+# LLM Prompts and Answers
+
+## Prompt for OperatorVisitor.java
+Q: Implement a Java class called OperatorVisitor that extends VoidVisitorAdapter<Void> to count operators in Java code using JavaParser. The class should count assignment operators, arithmetic operators, logical operators, and other operators.
+
+A: Here's the implementation for OperatorVisitor.java:
+
+```java
+package com.itestra.software_analyse_challenge.features;
+
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.stmt.*;
+import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.CompilationUnit;
+
+public class OperatorVisitor extends VoidVisitorAdapter<Void> {
+    private int operatorCount = 0;
+
+    @Override
+    public void visit(AssignExpr n, Void arg) {
+        operatorCount++;
+        super.visit(n, arg);
+    }
+
+    @Override
+    public void visit(BinaryExpr n, Void arg) {
+        operatorCount++;
+        super.visit(n, arg);
+    }
+
+    @Override
+    public void visit(UnaryExpr n, Void arg) {
+        operatorCount++;
+        super.visit(n, arg);
+    }
+
+    @Override
+    public void visit(ConditionalExpr n, Void arg) {
+        operatorCount++;
+        super.visit(n, arg);
+    }
+
+    public int getOperatorCount() {
+        return operatorCount;
+    }
+}
+```
+
+## Prompt for OperandVisitor.java
+Q: Implement a Java class called OperandVisitor that extends VoidVisitorAdapter<Void> to count operands in Java code using JavaParser. The class should count variable names, method names, and other operands.
+
+A: Here's the implementation for OperandVisitor.java:
+
+```java
+package com.itestra.software_analyse_challenge.features;
+
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.stmt.*;
+import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.CompilationUnit;
+
+public class OperandVisitor extends VoidVisitorAdapter<Void> {
+    private int operandCount = 0;
+
+    @Override
+    public void visit(NameExpr n, Void arg) {
+        operandCount++;
+        super.visit(n, arg);
+    }
+
+    @Override
+    public void visit(MethodCallExpr n, Void arg) {
+        operandCount++;
+        super.visit(n, arg);
+    }
+
+    @Override
+    public void visit(VariableDeclarator n, Void arg) {
+        operandCount++;
+        super.visit(n, arg);
+    }
+
+    public int getOperandCount() {
+        return operandCount;
+    }
+}
+```
+
+## Prompt for CyclomaticComplexityVisitor.java
+Q: Implement a Java class called CyclomaticComplexityVisitor that extends VoidVisitorAdapter<Void> to calculate the cyclomatic complexity of Java code using JavaParser. The class should count if statements, loops, catch clauses, and logical operators.
+
+A: Here's the implementation for CyclomaticComplexityVisitor.java:
+
+```java
+package com.itestra.software_analyse_challenge.features;
+
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.ast.stmt.*;
+import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.CompilationUnit;
+
+public class CyclomaticComplexityVisitor extends VoidVisitorAdapter<Void> {
+    private int complexity = 1; // Base complexity
+
+    @Override
+    public void visit(IfStmt n, Void arg) {
+        complexity++;
+        super.visit(n, arg);
+    }
+
+    @Override
+    public void visit(ForStmt n, Void arg) {
+        complexity++;
+        super.visit(n, arg);
+    }
+
+    @Override
+    public void visit(WhileStmt n, Void arg) {
+        complexity++;
+        super.visit(n, arg);
+    }
+
+    @Override
+    public void visit(DoStmt n, Void arg) {
+        complexity++;
+        super.visit(n, arg);
+    }
+
+    @Override
+    public void visit(SwitchEntry n, Void arg) {
+        complexity++;
+        super.visit(n, arg);
+    }
+
+    @Override
+    public void visit(CatchClause n, Void arg) {
+        complexity++;
+        super.visit(n, arg);
+    }
+
+    @Override
+    public void visit(BinaryExpr n, Void arg) {
+        if (n.getOperator() == BinaryExpr.Operator.AND || n.getOperator() == BinaryExpr.Operator.OR) {
+            complexity++;
+        }
+        super.visit(n, arg);
+    }
+
+    public int getComplexity() {
+        return complexity;
+    }
+}
+``` 
